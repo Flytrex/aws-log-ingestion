@@ -1,0 +1,381 @@
+service: newrelic-log-ingestion
+
+provider:
+  name: aws
+  runtime: python3.9
+  stage: prod
+  region: us-west-2
+  memorySize: 128  # ram in MB
+  timeout: 60 # timeout in seconds
+  lambdaHashingVersion: 20201221
+
+  iam:
+    role:
+      name: prod-newrelic-logs-shipper
+      path: /prod-common-services/
+      managedPolicies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      tags:
+        Service: common-services
+        Environment: prod
+        Component: newrelic-logs-shipper
+
+  environment:
+    # Determines if logs are forwarded to New Relic Infrastructure
+    INFRA_ENABLED: ${env:INFRA_ENABLED, "False"}
+    # Your NewRelic license key
+    LICENSE_KEY: ${ssm(us-west-2):/common/infra/NEWRELIC_LICENSE}
+    # Determines if logs are forwarded to New Relic Logging
+    LOGGING_ENABLED: ${env:LOGGING_ENABLED, "True"}
+    # A boolean to determine if you want to output debug messages in the CloudWatch console
+    DEBUG_LOGGING_ENABLED: ${env:DEBUG_LOGGING_ENABLED, "False"}
+
+  deploymentBucket:
+    name: flytrex-serverless-prod
+    skipPolicySetup: true
+  deploymentPrefix: newrelic-logs-shipper  # s3 bucket prefix appended to deployments
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    dockerFile: ./Dockerfile
+
+package:
+  exclude:
+    - ./**
+  include:
+    - ./LICENSE
+    - ./src/function.py
+
+functions:
+  prodNewrelicLogIngestion:
+    description: Send log data from CloudWatch Logs to New Relic Infrastructure (Cloud Integrations) and New Relic Logging.
+    handler: src/function.lambda_handler
+    name: prod-newrelic-log-ingestion
+    reservedConcurrency: 10 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
+    events:
+      # aha
+      - cloudwatchLog: 'aha-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'aha-delivery-service-delivery-api'
+      - cloudwatchLog: 'aha-delivery-service-mc-logger'
+      - cloudwatchLog: 'aha-delivery-service-misc-services'
+      - cloudwatchLog: 'aha-delivery-service-mission-manager'
+      - cloudwatchLog: 'aha-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'aha-delivery-service-router'
+      - cloudwatchLog: 'aha-delivery-service-seeder'
+      - cloudwatchLog: 'aha-delivery-service-test-frontend'
+      - cloudwatchLog: 'aha-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'aha/ecs-init'
+      - cloudwatchLog: 'aha/ecs-agent'
+      # aha-dev
+      - cloudwatchLog: 'aha-dev-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'aha-dev-delivery-service-delivery-api'
+      - cloudwatchLog: 'aha-dev-delivery-service-mc-logger'
+      - cloudwatchLog: 'aha-dev-delivery-service-misc-services'
+      - cloudwatchLog: 'aha-dev-delivery-service-mission-manager'
+      - cloudwatchLog: 'aha-dev-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'aha-dev-delivery-service-router'
+      - cloudwatchLog: 'aha-dev-delivery-service-seeder'
+      - cloudwatchLog: 'aha-dev-delivery-service-test-frontend'
+      - cloudwatchLog: 'aha-dev-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'aha-dev/ecs-init'
+      - cloudwatchLog: 'aha-dev/ecs-agent'
+      # brent
+      - cloudwatchLog: 'brent-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'brent-delivery-service-delivery-api'
+      - cloudwatchLog: 'brent-delivery-service-mc-logger'
+      - cloudwatchLog: 'brent-delivery-service-misc-services'
+      - cloudwatchLog: 'brent-delivery-service-mission-manager'
+      - cloudwatchLog: 'brent-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'brent-delivery-service-router'
+      - cloudwatchLog: 'brent-delivery-service-seeder'
+      - cloudwatchLog: 'brent-delivery-service-test-frontend'
+      - cloudwatchLog: 'brent-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'brent/ecs-init'
+      - cloudwatchLog: 'brent/ecs-agent'
+      # chimera1
+      - cloudwatchLog: 'chimera1-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'chimera1-delivery-service-delivery-api'
+      - cloudwatchLog: 'chimera1-delivery-service-mc-logger'
+      - cloudwatchLog: 'chimera1-delivery-service-misc-services'
+      - cloudwatchLog: 'chimera1-delivery-service-mission-manager'
+      - cloudwatchLog: 'chimera1-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'chimera1-delivery-service-router'
+      - cloudwatchLog: 'chimera1-delivery-service-seeder'
+      - cloudwatchLog: 'chimera1-delivery-service-test-frontend'
+      - cloudwatchLog: 'chimera1-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'chimera1/ecs-init'
+      - cloudwatchLog: 'chimera1/ecs-agent'
+      # causey-demo
+      - cloudwatchLog: 'causey-demo-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'causey-demo-delivery-service-delivery-api'
+      - cloudwatchLog: 'causey-demo-delivery-service-mc-logger'
+      - cloudwatchLog: 'causey-demo-delivery-service-misc-services'
+      - cloudwatchLog: 'causey-demo-delivery-service-mission-manager'
+      - cloudwatchLog: 'causey-demo-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'causey-demo-delivery-service-router'
+      - cloudwatchLog: 'causey-demo-delivery-service-seeder'
+      - cloudwatchLog: 'causey-demo-delivery-service-test-frontend'
+      - cloudwatchLog: 'causey-demo-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'causey-demo/ecs-init'
+      - cloudwatchLog: 'causey-demo/ecs-agent'
+      # causey-train
+      - cloudwatchLog: 'causey-train-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'causey-train-delivery-service-delivery-api'
+      - cloudwatchLog: 'causey-train-delivery-service-mc-logger'
+      - cloudwatchLog: 'causey-train-delivery-service-misc-services'
+      - cloudwatchLog: 'causey-train-delivery-service-mission-manager'
+      - cloudwatchLog: 'causey-train-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'causey-train-delivery-service-router'
+      - cloudwatchLog: 'causey-train-delivery-service-seeder'
+      - cloudwatchLog: 'causey-train-delivery-service-test-frontend'
+      - cloudwatchLog: 'causey-train-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'causey-train/ecs-init'
+      - cloudwatchLog: 'causey-train/ecs-agent'
+      # fayetteville1
+      - cloudwatchLog: 'fayetteville1-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'fayetteville1-delivery-service-delivery-api'
+      - cloudwatchLog: 'fayetteville1-delivery-service-mc-logger'
+      - cloudwatchLog: 'fayetteville1-delivery-service-misc-services'
+      - cloudwatchLog: 'fayetteville1-delivery-service-mission-manager'
+      - cloudwatchLog: 'fayetteville1-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'fayetteville1-delivery-service-router'
+      - cloudwatchLog: 'fayetteville1-delivery-service-seeder'
+      - cloudwatchLog: 'fayetteville1-delivery-service-test-frontend'
+      - cloudwatchLog: 'fayetteville1-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'fayetteville1/ecs-init'
+      - cloudwatchLog: 'fayetteville1/ecs-agent'
+      # granbury
+      - cloudwatchLog: 'granbury-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'granbury-delivery-service-delivery-api'
+      - cloudwatchLog: 'granbury-delivery-service-mc-logger'
+      - cloudwatchLog: 'granbury-delivery-service-misc-services'
+      - cloudwatchLog: 'granbury-delivery-service-mission-manager'
+      - cloudwatchLog: 'granbury-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'granbury-delivery-service-router'
+      - cloudwatchLog: 'granbury-delivery-service-seeder'
+      - cloudwatchLog: 'granbury-delivery-service-test-frontend'
+      - cloudwatchLog: 'granbury-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'granbury/ecs-init'
+      - cloudwatchLog: 'granbury/ecs-agent'
+      # hollysprings
+      - cloudwatchLog: 'hollysprings-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'hollysprings-delivery-service-delivery-api'
+      - cloudwatchLog: 'hollysprings-delivery-service-mc-logger'
+      - cloudwatchLog: 'hollysprings-delivery-service-misc-services'
+      - cloudwatchLog: 'hollysprings-delivery-service-mission-manager'
+      - cloudwatchLog: 'hollysprings-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'hollysprings-delivery-service-router'
+      - cloudwatchLog: 'hollysprings-delivery-service-seeder'
+      - cloudwatchLog: 'hollysprings-delivery-service-test-frontend'
+      - cloudwatchLog: 'hollysprings-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'hollysprings/ecs-init'
+      - cloudwatchLog: 'hollysprings/ecs-agent'
+      # lab
+      - cloudwatchLog: 'lab-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'lab-delivery-service-delivery-api'
+      - cloudwatchLog: 'lab-delivery-service-mc-logger'
+      - cloudwatchLog: 'lab-delivery-service-misc-services'
+      - cloudwatchLog: 'lab-delivery-service-mission-manager'
+      - cloudwatchLog: 'lab-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'lab-delivery-service-router'
+      - cloudwatchLog: 'lab-delivery-service-seeder'
+      - cloudwatchLog: 'lab-delivery-service-test-frontend'
+      - cloudwatchLog: 'lab-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'lab/ecs-init'
+      - cloudwatchLog: 'lab/ecs-agent'
+      # lab2
+      - cloudwatchLog: 'lab2-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'lab2-delivery-service-delivery-api'
+      - cloudwatchLog: 'lab2-delivery-service-mc-logger'
+      - cloudwatchLog: 'lab2-delivery-service-misc-services'
+      - cloudwatchLog: 'lab2-delivery-service-mission-manager'
+      - cloudwatchLog: 'lab2-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'lab2-delivery-service-router'
+      - cloudwatchLog: 'lab2-delivery-service-seeder'
+      - cloudwatchLog: 'lab2-delivery-service-test-frontend'
+      - cloudwatchLog: 'lab2-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'lab2/ecs-init'
+      - cloudwatchLog: 'lab2/ecs-agent'
+      # lab-train
+      - cloudwatchLog: 'lab-train-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'lab-train-delivery-service-delivery-api'
+      - cloudwatchLog: 'lab-train-delivery-service-mc-logger'
+      - cloudwatchLog: 'lab-train-delivery-service-misc-services'
+      - cloudwatchLog: 'lab-train-delivery-service-mission-manager'
+      - cloudwatchLog: 'lab-train-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'lab-train-delivery-service-router'
+      - cloudwatchLog: 'lab-train-delivery-service-seeder'
+      - cloudwatchLog: 'lab-train-delivery-service-test-frontend'
+      - cloudwatchLog: 'lab-train-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'lab-train/ecs-init'
+      - cloudwatchLog: 'lab-train/ecs-agent'
+      # liberty
+      - cloudwatchLog: 'liberty-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'liberty-delivery-service-delivery-api'
+      - cloudwatchLog: 'liberty-delivery-service-mc-logger'
+      - cloudwatchLog: 'liberty-delivery-service-misc-services'
+      - cloudwatchLog: 'liberty-delivery-service-mission-manager'
+      - cloudwatchLog: 'liberty-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'liberty-delivery-service-router'
+      - cloudwatchLog: 'liberty-delivery-service-seeder'
+      - cloudwatchLog: 'liberty-delivery-service-test-frontend'
+      - cloudwatchLog: 'liberty-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'liberty/ecs-init'
+      - cloudwatchLog: 'liberty/ecs-agent'
+      # liberty2
+      - cloudwatchLog: 'liberty2-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'liberty2-delivery-service-delivery-api'
+      - cloudwatchLog: 'liberty2-delivery-service-mc-logger'
+      - cloudwatchLog: 'liberty2-delivery-service-misc-services'
+      - cloudwatchLog: 'liberty2-delivery-service-mission-manager'
+      - cloudwatchLog: 'liberty2-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'liberty2-delivery-service-router'
+      - cloudwatchLog: 'liberty2-delivery-service-seeder'
+      - cloudwatchLog: 'liberty2-delivery-service-test-frontend'
+      - cloudwatchLog: 'liberty2-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'liberty2/ecs-init'
+      - cloudwatchLog: 'liberty2/ecs-agent'
+      # raeford
+      - cloudwatchLog: 'raeford-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'raeford-delivery-service-delivery-api'
+      - cloudwatchLog: 'raeford-delivery-service-mc-logger'
+      - cloudwatchLog: 'raeford-delivery-service-misc-services'
+      - cloudwatchLog: 'raeford-delivery-service-mission-manager'
+      - cloudwatchLog: 'raeford-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'raeford-delivery-service-router'
+      - cloudwatchLog: 'raeford-delivery-service-seeder'
+      - cloudwatchLog: 'raeford-delivery-service-test-frontend'
+      - cloudwatchLog: 'raeford-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'raeford/ecs-init'
+      - cloudwatchLog: 'raeford/ecs-agent'
+      # ups-farm1
+      - cloudwatchLog: 'ups-farm1-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'ups-farm1-delivery-service-delivery-api'
+      - cloudwatchLog: 'ups-farm1-delivery-service-mc-logger'
+      - cloudwatchLog: 'ups-farm1-delivery-service-misc-services'
+      - cloudwatchLog: 'ups-farm1-delivery-service-mission-manager'
+      - cloudwatchLog: 'ups-farm1-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'ups-farm1-delivery-service-router'
+      - cloudwatchLog: 'ups-farm1-delivery-service-seeder'
+      - cloudwatchLog: 'ups-farm1-delivery-service-test-frontend'
+      - cloudwatchLog: 'ups-farm1-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'ups-farm1/ecs-init'
+      - cloudwatchLog: 'ups-farm1/ecs-agent'
+      # ups-farm2
+      - cloudwatchLog: 'ups-farm2-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'ups-farm2-delivery-service-delivery-api'
+      - cloudwatchLog: 'ups-farm2-delivery-service-mc-logger'
+      - cloudwatchLog: 'ups-farm2-delivery-service-misc-services'
+      - cloudwatchLog: 'ups-farm2-delivery-service-mission-manager'
+      - cloudwatchLog: 'ups-farm2-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'ups-farm2-delivery-service-router'
+      - cloudwatchLog: 'ups-farm2-delivery-service-seeder'
+      - cloudwatchLog: 'ups-farm2-delivery-service-test-frontend'
+      - cloudwatchLog: 'ups-farm2-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'ups-farm2/ecs-init'
+      - cloudwatchLog: 'ups-farm2/ecs-agent'
+      # ups-villages
+      - cloudwatchLog: 'ups-villages-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'ups-villages-delivery-service-delivery-api'
+      - cloudwatchLog: 'ups-villages-delivery-service-mc-logger'
+      - cloudwatchLog: 'ups-villages-delivery-service-misc-services'
+      - cloudwatchLog: 'ups-villages-delivery-service-mission-manager'
+      - cloudwatchLog: 'ups-villages-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'ups-villages-delivery-service-router'
+      - cloudwatchLog: 'ups-villages-delivery-service-seeder'
+      - cloudwatchLog: 'ups-villages-delivery-service-test-frontend'
+      - cloudwatchLog: 'ups-villages-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'ups-villages/ecs-init'
+      - cloudwatchLog: 'ups-villages/ecs-agent'
+      # workshop
+      - cloudwatchLog: 'workshop-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'workshop-delivery-service-delivery-api'
+      - cloudwatchLog: 'workshop-delivery-service-mc-logger'
+      - cloudwatchLog: 'workshop-delivery-service-misc-services'
+      - cloudwatchLog: 'workshop-delivery-service-mission-manager'
+      - cloudwatchLog: 'workshop-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'workshop-delivery-service-router'
+      - cloudwatchLog: 'workshop-delivery-service-seeder'
+      - cloudwatchLog: 'workshop-delivery-service-test-frontend'
+      - cloudwatchLog: 'workshop-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'workshop/ecs-init'
+      - cloudwatchLog: 'workshop/ecs-agent'
+      # workshop2
+      - cloudwatchLog: 'workshop2-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'workshop2-delivery-service-delivery-api'
+      - cloudwatchLog: 'workshop2-delivery-service-mc-logger'
+      - cloudwatchLog: 'workshop2-delivery-service-misc-services'
+      - cloudwatchLog: 'workshop2-delivery-service-mission-manager'
+      - cloudwatchLog: 'workshop2-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'workshop2-delivery-service-router'
+      - cloudwatchLog: 'workshop2-delivery-service-seeder'
+      - cloudwatchLog: 'workshop2-delivery-service-test-frontend'
+      - cloudwatchLog: 'workshop2-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'workshop2/ecs-init'
+      - cloudwatchLog: 'workshop2/ecs-agent'
+      # workshop-liberty
+      - cloudwatchLog: 'workshop-liberty-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-delivery-api'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-mc-logger'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-misc-services'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-mission-manager'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-router'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-seeder'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-test-frontend'
+      - cloudwatchLog: 'workshop-liberty-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'workshop-liberty/ecs-init'
+      - cloudwatchLog: 'workshop-liberty/ecs-agent'
+      # oversight
+      - cloudwatchLog: 'oversight/prod/ecs-agent'
+      - cloudwatchLog: 'oversight/prod/ecs-init'
+      - cloudwatchLog: 'prod-oversight-dashboard-backend'
+      - cloudwatchLog: 'prod-oversight-seeder'
+      - cloudwatchLog: 'prod-oversight-test-frontend'
+      - cloudwatchLog: 'prod-oversight-vehicle-manager'
+      # oversight lab
+      - cloudwatchLog: 'oversight/lab/ecs-agent'
+      - cloudwatchLog: 'oversight/lab/ecs-init'
+      - cloudwatchLog: 'lab-oversight-dashboard-backend'
+      - cloudwatchLog: 'lab-oversight-seeder'
+      - cloudwatchLog: 'lab-oversight-test-frontend'
+      - cloudwatchLog: 'lab-oversight-vehicle-manager'
+      # food server
+      - cloudwatchLog: 'food-server/prod2/ecs-agent'
+      - cloudwatchLog: 'food-server/prod2/ecs-init'
+      - cloudwatchLog: 'prod2-food-server-api'
+      - cloudwatchLog: 'prod2-food-server-active-campaign-worker'
+      # foa service prod
+      - cloudwatchLog: '/foa-service/prod/ecs-agent'
+      - cloudwatchLog: 'prod-foa-service-seeder'
+      - cloudwatchLog: 'prod-foa-service-admin'
+      - cloudwatchLog: 'prod-foa-service-foa-backend'
+      - cloudwatchLog: 'prod-foa-service-order-manager'
+      - cloudwatchLog: 'prod-foa-service-misc'
+      # queue service
+      - cloudwatchLog: '/queue-service/prod/ecs-agent'
+      - cloudwatchLog: '/queue-service/prod/ecs-init'
+      - cloudwatchLog: 'prod-queue-service-seeder'
+      - cloudwatchLog: 'prod-queue-service-admin'
+      - cloudwatchLog: 'prod-queue-service-connection-manager'
+      - cloudwatchLog: 'prod-queue-service-runner-manager'
+      # prod common services cluster
+      - cloudwatchLog: 'common-prod/ecs-agent'
+      # web tools
+      - cloudwatchLog: 'tools-api'
+      - cloudwatchLog: 'tools-scheduler'
+      # bigquery etl lambdas
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-uploadParquetToBigquery'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-dumpDb'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-sqlToParquet'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-initiator'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-latestPartitionViews'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-sendMail'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-errorToDynamoDB'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-telemetryToParquet'
+      - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-telemetryToBigQuery'
+
+
+plugins:
+  - serverless-python-requirements
