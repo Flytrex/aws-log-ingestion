@@ -342,11 +342,6 @@ functions:
       - cloudwatchLog: 'lab-oversight-seeder'
       - cloudwatchLog: 'lab-oversight-test-frontend'
       - cloudwatchLog: 'lab-oversight-vehicle-manager'
-      # food server
-      - cloudwatchLog: 'food-server/prod2/ecs-agent'
-      - cloudwatchLog: 'food-server/prod2/ecs-init'
-      - cloudwatchLog: 'prod2-food-server-api'
-      - cloudwatchLog: 'prod2-food-server-active-campaign-worker'
       # foa service prod
       - cloudwatchLog: '/foa-service/prod/ecs-agent'
       - cloudwatchLog: 'prod-foa-service-seeder'
@@ -361,6 +356,7 @@ functions:
       - cloudwatchLog: 'prod-queue-service-admin'
       - cloudwatchLog: 'prod-queue-service-connection-manager'
       - cloudwatchLog: 'prod-queue-service-runner-manager'
+      - cloudwatchLog: 'prod-queue-service-merchant-manager'
       # prod common services cluster
       - cloudwatchLog: 'common-prod/ecs-agent'
       # web tools
