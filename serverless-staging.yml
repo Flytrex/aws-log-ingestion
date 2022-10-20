@@ -1,16 +1,15 @@
 service: newrelic-log-ingestion
+variablesResolutionMode: 20210326
 
 provider:
   name: aws
   runtime: python3.9
   stage: staging
-  region: us-west-2
+  region: us-east-2
   memorySize: 128  # ram in MB
   timeout: 60 # timeout in seconds
   lambdaHashingVersion: 20201221
 
-  # Uncomment this line to use your own IAM role
-  #role: arn:aws:iam::YourAccountNumber:role/YourIamRole
   iam:
     role:
       name: staging-newrelic-logs-shipper
@@ -24,7 +23,7 @@ provider:
 
   environment:
     # Determines if logs are forwarded to New Relic Infrastructure
-    INFRA_ENABLED: ${env:INFRA_ENABLED, "True"}
+    INFRA_ENABLED: ${env:INFRA_ENABLED, "False"}
     # Your NewRelic license key
     LICENSE_KEY: ${ssm(us-west-2):/common/infra/NEWRELIC_LICENSE}
     # Determines if logs are forwarded to New Relic Logging
@@ -271,6 +270,7 @@ functions:
       - cloudwatchLog: 'qa-queue-service-admin'
       - cloudwatchLog: 'qa-queue-service-connection-manager'
       - cloudwatchLog: 'qa-queue-service-runner-manager'
+      - cloudwatchLog: 'staging-queue-service-merchant-manager'
       # bigquery etl lambdas
       - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-staging-uploadParquetToBigquery'
       - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-staging-dumpDb'
