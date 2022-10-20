@@ -256,6 +256,7 @@ functions:
       - cloudwatchLog: 'external-queue-service-admin'
       - cloudwatchLog: 'external-queue-service-connection-manager'
       - cloudwatchLog: 'external-queue-service-runner-manager'
+#      - cloudwatchLog: 'external-queue-service-merchant-manager'
       # queue service staging-papa
       - cloudwatchLog: '/queue-service/papa/ecs-agent'
       - cloudwatchLog: '/queue-service/papa/ecs-init'
@@ -263,6 +264,7 @@ functions:
       - cloudwatchLog: 'papa-queue-service-admin'
       - cloudwatchLog: 'papa-queue-service-connection-manager'
       - cloudwatchLog: 'papa-queue-service-runner-manager'
+#      - cloudwatchLog: 'papa-queue-service-merchant-manager'
       # queue service qa
       - cloudwatchLog: '/queue-service/qa/ecs-agent'
       - cloudwatchLog: '/queue-service/qa/ecs-init'
@@ -270,7 +272,7 @@ functions:
       - cloudwatchLog: 'qa-queue-service-admin'
       - cloudwatchLog: 'qa-queue-service-connection-manager'
       - cloudwatchLog: 'qa-queue-service-runner-manager'
-      - cloudwatchLog: 'staging-queue-service-merchant-manager'
+      - cloudwatchLog: 'qa-queue-service-merchant-manager'
       # bigquery etl lambdas
       - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-staging-uploadParquetToBigquery'
       - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-staging-dumpDb'
