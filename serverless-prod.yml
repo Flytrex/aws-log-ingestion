@@ -375,7 +375,19 @@ functions:
       - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-errorToDynamoDB'
       - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-telemetryToParquet'
       - cloudwatchLog: '/aws/lambda/etl-db-to-bigquery-prod-telemetryToBigQuery'
-
+      # durham
+      - cloudwatchLog: 'durham-delivery-service-dashboard-backend'
+      - cloudwatchLog: 'durham-delivery-service-delivery-api'
+      - cloudwatchLog: 'durham-delivery-service-mc-logger'
+      - cloudwatchLog: 'durham-delivery-service-misc-services'
+      - cloudwatchLog: 'durham-delivery-service-mission-manager'
+      - cloudwatchLog: 'durham-delivery-service-oversight-middleman'
+      - cloudwatchLog: 'durham-delivery-service-router'
+      - cloudwatchLog: 'durham-delivery-service-seeder'
+      - cloudwatchLog: 'durham-delivery-service-test-frontend'
+      - cloudwatchLog: 'durham-delivery-service-vehicle-simulator'
+      - cloudwatchLog: 'durham/ecs-init'
+      - cloudwatchLog: 'durham/ecs-agent'
 
 plugins:
   - serverless-python-requirements
