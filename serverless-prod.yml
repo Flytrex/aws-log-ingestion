@@ -1,4 +1,5 @@
 service: newrelic-log-ingestion
+variablesResolutionMode: 20210326
 
 provider:
   name: aws
