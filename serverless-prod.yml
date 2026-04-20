@@ -1,14 +1,12 @@
 service: newrelic-log-ingestion
-variablesResolutionMode: 20210326
 
 provider:
   name: aws
-  runtime: python3.9
+  runtime: python3.12
   stage: prod
   region: us-west-2
   memorySize: 128  # ram in MB
   timeout: 60 # timeout in seconds
-  lambdaHashingVersion: 20201221
 
   iam:
     role:
@@ -39,7 +37,7 @@ provider:
 custom:
   pythonRequirements:
     dockerizePip: true
-    dockerFile: ./Dockerfile
+    fileName: ./src/requirements.txt
 
 package:
   exclude:
