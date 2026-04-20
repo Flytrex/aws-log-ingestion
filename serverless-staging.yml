@@ -53,5 +53,4 @@ functions:
     name: staging-newrelic-log-ingestion
     reservedConcurrency: 10 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
 
-plugins:
-  - serverless-python-requirements
+plugins: []
