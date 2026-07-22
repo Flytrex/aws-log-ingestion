@@ -52,6 +52,36 @@ functions:
     handler: src/function.lambda_handler
     name: prod-newrelic-log-ingestion
     reservedConcurrency: 50 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
+    destinations: # invocations that exhaust all retries land here instead of being silently dropped
+      onFailure:
+        type: sqs
+        arn: !GetAtt NewrelicLogIngestionDlq.Arn
 
+resources:
+  Resources:
+    NewrelicLogIngestionDlq:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: prod-newrelic-log-ingestion-dlq
+        MessageRetentionPeriod: 1209600 # 14 days
+
+    NewrelicLogIngestionDlqAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: prod-newrelic-log-ingestion-dlq-alarm
+        AlarmDescription: Number of Messages in SQS Queue is More than the threshold
+        Namespace: AWS/SQS
+        MetricName: ApproximateNumberOfMessagesVisible
+        Dimensions:
+          - Name: QueueName
+            Value: !GetAtt NewrelicLogIngestionDlq.QueueName
+        Statistic: Minimum
+        Period: 60
+        EvaluationPeriods: 5
+        Threshold: 1
+        ComparisonOperator: GreaterThanThreshold
+        TreatMissingData: missing
+        AlarmActions:
+          - arn:aws:sns:us-west-2:233256533036:devops
 
 plugins: []
